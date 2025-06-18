@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333; /* Default text color */
+            overflow-x: hidden; /* Prevent horizontal scroll on body */
+        }
+
+        /* Login Page Styles */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px; /* Added padding for small screens */
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:%23667eea;stop-opacity:1" /><stop offset="100%" style="stop-color:%23764ba2;stop-opacity:1" /></linearGradient></defs><rect width="100%" height="100%" fill="url(%23bg)"/><circle cx="200" cy="200" r="100" fill="rgba(255,255,255,0.1)"/><circle cx="1720" cy="880" r="150" fill="rgba(255,255,255,0.05)"/><circle cx="800" cy="500" r="200" fill="rgba(255,255,255,0.03)"/></svg>') center/cover;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            width: 400px;
+            max-width: 100%;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .login-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: white;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+            backdrop-filter: blur(5px);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Dashboard Styles */
+        .dashboard {
+            display: none; /* Initially hidden, JS will manage */
+            min-height: 100vh;
+            flex-direction: column;
+            position: relative;
+        }
+        .dashboard.sidebar-open .content-area-overlay {
+            display: block;
+        }
+        .dashboard.sidebar-active .content-area-overlay {
+            display: block;
+        }
+
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 10px 15px;
+            color: black;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1070;
+            height: auto;
+        }
+        .menu-toggle-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: black;
+            font-size: 26px;
+            cursor: pointer;
+            padding: 5px;
+            margin-right: 10px;
+            z-index: 1100;
+            flex-shrink: 0;
+        }
+        .dashboard-header .header-content {
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 2px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .welcome-text {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .main-container {
+            display: flex;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            flex-grow: 1;
+            position: relative;
+            padding-top: 60px; /* Default, will be adjusted by JS */
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            transition: left 0.3s ease-in-out; /* Changed transition property */
+            z-index: 1050;
+            position: fixed;
+            left: -255px; /* Initially off-screen to the left */
+            height: 100%;
+            top: 0;
+            padding-top: 60px;
+        }
+
+        .nav-items-container {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #333;
+        }
+        .nav-items-container .nav-item:last-child {
+            border-bottom: none;
+        }
+
+        .nav-item#logoutBtn {
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .nav-item#logoutBtn:hover {
+            background-color: #f5c6cb;
+            color: #721c24;
+            transform: translateX(0px);
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateX(5px);
+        }
+        .nav-item.active#logoutBtn {
+             background-color: #f8d7da;
+             color: #721c24;
+             transform: translateX(0px);
+        }
+
+
+        .content-area {
+            flex: 1;
+            padding: 20px;
+            position: relative;
+            overflow-y: auto;
+            transition: filter 0.3s ease-in-out, margin-left 0.3s ease-in-out;
+        }
+
+        .content-area-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1001;
+        }
+
+        /* Task Form & View Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 550px;
+            max-width: 100%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+         .modal-header h3 {
+            color: #333;
+            flex-grow: 1;
+            font-size: 1.3rem;
+         }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+            padding: 0 5px;
+        }
+        .close-btn:hover {
+            color: #555;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-col:only-child {
+            flex-basis: 100%;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .form-col label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-col input, .form-col select, .form-col textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            color: #333;
+        }
+         .form-col input::placeholder, .form-col textarea::placeholder {
+            color: #999;
+        }
+
+        .form-col input:focus, .form-col select:focus, .form-col textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-col textarea {
+            resize: none;
+            min-height: 80px;
+            overflow-y: hidden;
+        }
+
+        .submit-btn, .delete-btn, .edit-task-btn-from-view, .close-view-modal-secondary-btn {
+            padding: 10px 15px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 100%;
+        }
+        .delete-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            width: 100%;
+        }
+         .edit-task-btn-from-view {
+            background: #007bff;
+         }
+         .close-view-modal-secondary-btn {
+            background: #dc3545;
+         }
+
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+        .delete-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+        }
+         .edit-task-btn-from-view:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+         }
+         .close-view-modal-secondary-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+         }
+
+
+        /* Task View Modal Specific Styles */
+        #taskViewModal .modal-content {
+             background-color: #e9f5ff;
+        }
+        #taskViewModal .modal-header h3 {
+            text-align: center;
+            width: 100%;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        #taskViewModal .modal-header .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+        }
+
+        .view-field-row {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+        .view-field-label {
+            width: auto;
+            font-weight: bold;
+            color: #333;
+            padding-right: 0;
+            margin-bottom: 4px;
+            font-size: 0.9em;
+        }
+        .view-field-value {
+            flex: 1;
+            color: #555;
+            word-break: break-word;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            width: 100%;
+        }
+        .view-field-value.remarks-view {
+            background-color: white;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            padding: 10px;
+            min-height: 70px;
+            line-height: 1.5;
+        }
+        .view-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+            flex-wrap: wrap;
+        }
+        .view-modal-actions button {
+            flex-grow: 1;
+        }
+
+
+        /* Task Table Styles (Used for Home, All Tasks, History) */
+        .tasks-table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .tasks-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+        .tasks-table th, .tasks-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+        .tasks-table th {
+            background: linear-gradient(135deg, #6b73ff, #00c4ff);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .tasks-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .tasks-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .tasks-table th.col-sno, .tasks-table td.col-sno { width: 5%; min-width: 40px; }
+        .tasks-table th.col-date, .tasks-table td.col-date { width: 10%; min-width: 80px; }
+        .tasks-table th.col-task, .tasks-table td.col-task { width: 25%; min-width: 150px; }
+        .tasks-table th.col-department, .tasks-table td.col-department { width: 10%; min-width: 80px; }
+        .tasks-table th.col-priority, .tasks-table td.col-priority { width: 8%; min-width: 60px; }
+        .tasks-table th.col-status, .tasks-table td.col-status { width: 8%; min-width: 70px; }
+        .tasks-table th.col-remarks, .tasks-table td.col-remarks { width: 17%; min-width: 120px; }
+        .tasks-table th.col-remarks2, .tasks-table td.col-remarks2 { width: 17%; min-width: 120px; }
+
+        .tasks-table td.col-sno,
+        .tasks-table td.col-date,
+        .tasks-table td.col-department,
+        .tasks-table td.col-priority,
+        .tasks-table td.col-status {
+            white-space: nowrap;
+        }
+
+        .tasks-table td.col-remarks, .tasks-table td.col-remarks2, .tasks-table td.col-task {
+            white-space: pre-wrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Task Display Styles (Cards - for Pending and Upcoming sections) */
+        .task-card {
+            min-width: 280px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .task-date {
+            font-size: 11px;
+            color: #555;
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .task-status {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-todo { background: #fff3cd; color: #856404; }
+        .status-onhold { background: #f8d7da; color: #721c24; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #d1ecf1; color: #0c5460; }
+
+        .task-department {
+            font-size: 13px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .task-priority {
+            font-weight: 600;
+        }
+        .prio-high { color: #dc3545; }
+        .prio-low { color: #28a745; }
+
+        .task-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .task-remarks {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .tasks-grid .task-card {
+            animation: subtleFloat 3s ease-in-out infinite alternate;
+        }
+        .tasks-grid .task-card:nth-child(2n) {
+            animation-delay: 0.5s;
+        }
+        .tasks-grid .task-card:nth-child(3n) {
+            animation-delay: 1s;
+        }
+
+        @keyframes subtleFloat {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* General .filter-container styles (for other sections) */
+        .filter-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap; /* Default wrap for other filters */
+            align-items: center;
+            background-color: rgba(255,255,255,0.8);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        /* General styles for items inside .filter-container (will be overridden by #homeFilterContainer specifics if needed) */
+        .filter-container label {
+            font-weight: 500;
+            margin-right: 5px;
+            color: #333;
+            font-size: 14px;
+        }
+        .filter-container .filter-select, .filter-container .filter-date-input {
+            padding: 8px 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            color: #333;
+            font-size: 13px;
+            flex-grow: 1; /* Allows them to grow in other filter containers */
+            min-width: 120px;
+        }
+        .filter-container .filter-btn, .filter-container .add-task-btn {
+            padding: 8px 12px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+            font-size: 13px;
+            flex-grow: 1; /* Allows them to grow in other filter containers */
+        }
+        .filter-container .filter-btn { /* Default button color for other filters */
+             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .filter-container .add-task-btn, #openAddTaskModalBtn { /* Specific style for add task button if it's part of general filter containers */
+             background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        }
+        .filter-container .filter-btn:hover { /* Default hover for other filters */
+            background: linear-gradient(135deg, #5a68d1 0%, #623c8a 100%);
+        }
+
+
+        /* --- Styles for #homeFilterContainer (Today's Tasks filters) for single line --- */
+        #homeFilterContainer {
+            flex-wrap: nowrap !important; /* Key for single line, important to override general .filter-container */
+            overflow-x: auto !important;  /* Horizontal scroll if content overflows */
+            padding: 12px 15px !important;
+            gap: 8px !important; /* Slightly reduced gap */
+            align-items: center; /* Vertically align items */
+        }
+
+        #homeFilterContainer > label {
+            font-weight: 500;
+            color: #333;
+            font-size: 13px !important; /* Slightly smaller for fitting */
+            margin-right: 4px !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+        }
+
+        #homeFilterContainer > .filter-select,
+        #homeFilterContainer > .filter-date-input {
+            padding: 7px 9px !important; /* Slightly smaller padding */
+            border: 1px solid #ccc !important; /* Thinner border */
+            border-radius: 6px !important;
+            background: white !important;
+            color: #333 !important;
+            font-size: 12px !important; /* Smaller font */
+            flex-grow: 0 !important;    /* Don't grow */
+            flex-shrink: 0 !important;  /* Don't shrink excessively */
+        }
+
+        #homeFilterContainer > .filter-select {
+            width: 130px !important;
+        }
+        #homeFilterContainer > #departmentFilterHome { /* More specific ID */
+            width: 140px !important;
+        }
+
+        #homeFilterContainer > .filter-date-input {
+            width: 115px !important;
+        }
+
+        #homeFilterContainer > .filter-btn { /* Targeting general filter buttons specifically within #homeFilterContainer */
+            padding: 7px 10px !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 6px !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            flex-grow: 0 !important;
+        }
+        
+        /* Style for the #openAddTaskModalBtn specifically */
+        #homeFilterContainer > #openAddTaskModalBtn {
+            padding: 7px 10px !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 6px !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            flex-grow: 0 !important;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24) !important;
+            margin-left: auto !important; /* This moves the button to the right */
+        }
+        /* Span styling for the + icon in #openAddTaskModalBtn */
+        #homeFilterContainer > #openAddTaskModalBtn span {
+            font-size: 14px !important; 
+            vertical-align: middle;
+            margin-right: 2px; /* Space between + and New */
+        }
+
+
+        #homeFilterContainer > #applyHomeDateFilterBtn, /* ID is more specific */
+        #homeFilterContainer > #showAllHomeTasksBtn { /* ID is more specific */
+             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+
+        /* Hover effects for buttons in #homeFilterContainer */
+        #homeFilterContainer > .filter-btn:hover,
+        #homeFilterContainer > #openAddTaskModalBtn:hover { /* Apply hover to the specific button too */
+            filter: brightness(110%); /* Simple hover effect */
+        }
+
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .hidden { display: none !important; }
+        .error-message { color: #d32f2f; font-size: 13px; margin-top: 5px; text-align: center; }
+        .success-message { background: #d4edda; color: #155724; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #c3e6cb; text-align: center; font-size: 14px; }
+        .no-tasks-message { text-align: center; padding: 30px; color: #666; font-size: 1rem; grid-column: 1/-1; }
+        .no-tasks-message-table { text-align: center; padding: 30px; color: #666; font-size: 1rem; }
+
+        /* --- Responsive Styles --- */
+
+        /* Desktop Styles (implicit, >1024px) */
+        @media (min-width: 1025px) {
+            .menu-toggle-btn {
+                display: none !important;
+            }
+            .sidebar {
+                transform: translateX(0);
+                left: 0;
+            }
+            .content-area {
+                margin-left: 250px; /* Sidebar width */
+            }
+            .content-area-overlay {
+                display: none !important;
+            }
+            .dashboard.sidebar-active .sidebar {
+                transform: translateX(0);
+                left: 0;
+            }
+             .dashboard.sidebar-active .content-area-overlay {
+                display: none !important;
+            }
+        }
+
+        /* --- MODIFIED: Tablet specific styles for #homeFilterContainer --- */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            #homeFilterContainer {
+                flex-wrap: wrap !important; /* Allow wrapping on tablet */
+                overflow-x: visible !important; /* Remove scroll if wrapping */
+                padding: 10px 12px !important; 
+                gap: 8px !important;
+            }
+            #homeFilterContainer > label {
+                font-size: 11px !important; 
+                margin-right: 3px !important;
+            }
+            #homeFilterContainer > .filter-select,
+            #homeFilterContainer > .filter-date-input {
+                padding: 6px 8px !important;
+                font-size: 11px !important;
+                width: auto !important; 
+                flex-grow: 1 !important; 
+                min-width: 90px !important; /* Adjusted min-width */
+            }
+            #homeFilterContainer > #departmentFilterHome {
+                 min-width: 110px !important; /* Adjusted min-width */
+            }
+            #homeFilterContainer > .filter-btn,
+            #homeFilterContainer > #openAddTaskModalBtn {
+                padding: 6px 9px !important;
+                font-size: 11px !important;
+                flex-grow: 0 !important; 
+            }
+            #homeFilterContainer > #openAddTaskModalBtn {
+                 margin-left: auto !important; /* Keep to right if space allows */
+            }
+             #homeFilterContainer > #openAddTaskModalBtn span {
+                 font-size: 12px !important; 
+                 vertical-align: middle;
+                 margin-right: 2px;
+            }
+        }
+
+
+        /* Tablets and larger mobile landscape - General adjustments */
+        @media (max-width: 1024px) {
+            .sidebar {
+                left: -255px;
+                transform: translateX(0);
+            }
+            .dashboard.sidebar-active .sidebar {
+                left: 0;
+                transform: translateX(0);
+            }
+            .menu-toggle-btn {
+                display: block;
+            }
+            .dashboard.sidebar-active .content-area-overlay {
+                display: block;
+            }
+            .content-area {
+                margin-left: 0;
+            }
+
+            .tasks-table {
+                min-width: 600px;
+            }
+            /* MODIFIED: General filter adjustments for tablet for OTHER sections (not #homeFilterContainer) */
+            .content-section:not(#home-section) .filter-container { 
+                padding: 10px;
+            }
+            .content-section:not(#home-section) .filter-container > * {
+                margin-bottom: 8px;
+            }
+             .content-section:not(#home-section) .filter-container label {
+                font-size: 12px; /* MODIFIED */
+                width: auto;
+                display: inline-block;
+                margin-right: 5px;
+            }
+            .content-section:not(#home-section) .filter-container .filter-select,
+            .content-section:not(#home-section) .filter-container .filter-date-input,
+            .content-section:not(#home-section) .filter-container .filter-btn,
+            .content-section:not(#home-section) .filter-container .add-task-btn {
+                padding: 6px 8px; /* MODIFIED */
+                font-size: 11px; /* MODIFIED */
+                flex-grow: 1;
+            }
+            .content-section:not(#home-section) .filter-container .add-task-btn span {
+                 font-size: 12px !important; /* MODIFIED for consistency */
+                 vertical-align: middle;
+                 margin-right: 2px;
+            }
+        }
+
+        /* Mobile Phones (Portrait and Landscape) */
+        @media (max-width: 767px) {
+            .login-box {
+                padding: 25px;
+                margin: 15px;
+            }
+            .login-header h1 {
+                font-size: 2rem;
+            }
+
+            .dashboard-header {
+                padding: 8px 12px;
+            }
+            .dashboard-header h1 {
+                font-size: 1.4rem;
+            }
+            .welcome-text {
+                font-size: 0.8rem;
+            }
+             .menu-toggle-btn {
+                font-size: 24px;
+                margin-right: 8px;
+            }
+
+            .content-area {
+                padding: 15px;
+            }
+
+            .modal-content {
+                padding: 15px;
+                margin: 10px auto;
+                width: 95%;
+            }
+            .modal-header h3 {
+                font-size: 1.2rem;
+            }
+            .form-row {
+                flex-direction: column;
+            }
+            .view-field-row {
+                flex-direction: column;
+            }
+            .view-field-label {
+                width: 100%;
+                margin-bottom: 3px;
+            }
+            .view-modal-actions button {
+                min-width: 100px;
+                font-size: 13px;
+            }
+
+
+            .tasks-table-container {
+                margin-top: 15px;
+            }
+            .tasks-table {
+                font-size: 12px;
+                min-width: 500px;
+            }
+            .tasks-table th, .tasks-table td {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+            .tasks-table th.col-sno, .tasks-table td.col-sno,
+            .tasks-table th.col-remarks2, .tasks-table td.col-remarks2 {
+                display: table-cell;
+            }
+
+
+            .tasks-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .task-card {
+                min-width: unset;
+                width: 100%;
+            }
+
+            /* MODIFIED: Mobile styles for #homeFilterContainer */
+            #homeFilterContainer {
+                flex-direction: column !important; 
+                flex-wrap: wrap !important;       
+                overflow-x: hidden !important;    
+                gap: 8px !important;             /* MODIFIED */
+                padding: 8px !important;         /* MODIFIED */
+            }
+
+            #homeFilterContainer > * { 
+                width: 100% !important;      
+                margin-bottom: 6px !important; /* MODIFIED */
+                flex-shrink: 1 !important;   
+                min-width: auto !important; 
+                 margin-left: 0 !important; 
+            }
+            #homeFilterContainer > *:last-child {
+                margin-bottom: 0 !important;
+            }
+
+            #homeFilterContainer > label {
+                margin-right: 0 !important;
+                margin-bottom: 2px !important; /* MODIFIED */
+                font-size: 12px !important;   /* MODIFIED */
+                display: block !important;
+            }
+
+            #homeFilterContainer > .filter-select,
+            #homeFilterContainer > .filter-date-input,
+            #homeFilterContainer > .filter-btn,
+            #homeFilterContainer > #openAddTaskModalBtn { 
+                font-size: 11px !important;   /* MODIFIED */
+                padding: 6px 8px !important;  /* MODIFIED */
+                width: 100% !important; 
+                margin-left: 0 !important; 
+            }
+             #homeFilterContainer > .filter-date-input { 
+                -webkit-appearance: none;
+                appearance: none;
+            }
+            /* MODIFIED: Span styling for + icon on mobile */
+            #homeFilterContainer > #openAddTaskModalBtn span {
+                font-size: 12px !important;
+                vertical-align: middle;
+                margin-right: 2px;
+            }
+
+
+            /* MODIFIED: Mobile styles for OTHER filter containers */
+            .content-section:not(#home-section) .filter-container {
+                flex-direction: column;
+                gap: 6px; /* MODIFIED */
+                padding: 8px; /* MODIFIED */
+            }
+            .content-section:not(#home-section) .filter-container > * {
+                width: 100%;
+                flex-basis: auto;
+                margin-bottom: 6px;
+                margin-right: 0;
+            }
+            .content-section:not(#home-section) .filter-container label {
+                font-size: 12px; /* MODIFIED */
+                margin-bottom: 2px; /* MODIFIED */
+                display: block;
+                width: 100%;
+            }
+            .content-section:not(#home-section) .filter-container .filter-select,
+            .content-section:not(#home-section) .filter-container .filter-date-input,
+            .content-section:not(#home-section) .filter-container .filter-btn,
+            .content-section:not(#home-section) .filter-container .add-task-btn {
+                width: 100%;
+                font-size: 11px; /* MODIFIED */
+                padding: 6px 8px; /* MODIFIED */
+            }
+            .content-section:not(#home-section) .filter-container .add-task-btn span {
+                font-size: 12px !important; /* MODIFIED for consistency */
+                 vertical-align: middle;
+                 margin-right: 2px;
+            }
+
+            .section-title {
+                font-size: 18px;
+            }
+        }
+
+        /* Smaller Mobile Phones */
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 20px;
+            }
+            .login-header h1 {
+                font-size: 1.8rem;
+            }
+            .form-group input {
+                padding: 10px 12px;
+                font-size: 15px;
+            }
+            .login-btn {
+                padding: 10px;
+                font-size: 15px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1.2rem;
+            }
+            .welcome-text {
+                font-size: 0.75rem;
+            }
+            .menu-toggle-btn {
+                font-size: 22px;
+            }
+
+            .content-area {
+                padding: 10px;
+            }
+            .section-title {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+
+            .modal-content {
+                border-radius: 10px;
+                width: calc(100% - 20px);
+                margin: 10px auto;
+            }
+             .modal-header h3 {
+                font-size: 1.1rem;
+            }
+            .close-btn {
+                font-size: 24px;
+            }
+            .submit-btn, .delete-btn, .edit-task-btn-from-view, .close-view-modal-secondary-btn {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .tasks-table th, .tasks-table td {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+            .tasks-table {
+                min-width: 400px;
+            }
+
+            .task-card {
+                padding: 12px;
+            }
+            .task-title {
+                font-size: 14px;
+            }
+            .task-remarks, .task-department, .task-date, .task-status {
+                font-size: 12px; /* This was 12px, if filter elements are 11px, this could also be 11px for consistency if desired */
+            }
+
+            /* Further refinement for very small screens if needed for filters */
+            #homeFilterContainer > label,
+            .content-section:not(#home-section) .filter-container label {
+                font-size: 11px !important; /* Potentially smaller on very small screens */
+            }
+            #homeFilterContainer > .filter-select,
+            #homeFilterContainer > .filter-date-input,
+            #homeFilterContainer > .filter-btn,
+            #homeFilterContainer > #openAddTaskModalBtn,
+            .content-section:not(#home-section) .filter-container .filter-select,
+            .content-section:not(#home-section) .filter-container .filter-date-input,
+            .content-section:not(#home-section) .filter-container .filter-btn,
+            .content-section:not(#home-section) .filter-container .add-task-btn {
+                font-size: 10px !important; /* Potentially smaller */
+                padding: 5px 7px !important; /* Potentially smaller */
+            }
+            #homeFilterContainer > #openAddTaskModalBtn span,
+            .content-section:not(#home-section) .filter-container .add-task-btn span {
+                font-size: 11px !important; /* Potentially smaller */
+            }
+
+        }
+        /* Styles for form elements within .form-row for larger screens */
+        @media (min-width: 768px) { /* This is for the task edit/add form, not filters */
+            .form-row {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loginPage" class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h1>TASK MANAGER</h1>
+                <p>Welcome back!</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+                <div id="loginError" class="error-message" style="display: none; margin-top: 10px;"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard" class="dashboard">
+        <div class="dashboard-header" id="dashboardHeader">
+            <button id="menuToggleBtn" class="menu-toggle-btn">☰</button>
+            <div class="header-content">
+                <h1>TASK MANAGER</h1>
+                <p class="welcome-text">Welcome, <span id="welcomeUser">User</span></p>
+            </div>
+        </div>
+        <div class="main-container" id="mainContainer">
+            <div class="sidebar" id="sidebar">
+                <div class="nav-items-container">
+                    <div class="nav-item active" data-section="home">Home</div>
+                    <div class="nav-item" data-section="all-tasks">View All Tasks</div>
+                    <div class="nav-item" data-section="pending">Pending</div>
+                    <div class="nav-item" data-section="upcoming">Upcoming</div>
+                    <div class="nav-item" data-section="history">History</div>
+                    <div class="nav-item" id="logoutBtn">Logout</div>
+                </div>
+            </div>
+            <div class="content-area-overlay"></div>
+            <div class="content-area">
+                <div id="home-section" class="content-section">
+                    <h2 class="section-title">Today's Tasks</h2>
+                    <div class="filter-container" id="homeFilterContainer">
+                        <label for="statusFilterHome">Status:</label>
+                        <select class="filter-select" id="statusFilterHome">
+                            <option value="">All Status</option><option value="To do">To do</option><option value="On hold">On hold</option> </select>
+                        <label for="departmentFilterHome">Department:</label>
+                        <select class="filter-select" id="departmentFilterHome">
+                            <option value="">All Departments</option><option value="IT">IT</option><option value="HR">HR</option><option value="2D">2D</option><option value="3D">3D</option><option value="Editing">Editing</option><option value="Digital Marketing">Digital Marketing</option><option value="Sales">Sales</option><option value="Typing">Typing</option><option value="Technical Team">Technical Team</option>
+                        </select>
+                        <label for="dateFilterHomeStart">From:</label>
+                        <input type="date" class="filter-date-input" id="dateFilterHomeStart">
+                        <label for="dateFilterHomeEnd">To:</label>
+                        <input type="date" class="filter-date-input" id="dateFilterHomeEnd">
+                        <button class="filter-btn" id="applyHomeDateFilterBtn">Apply Dates</button>
+                        <button class="filter-btn" id="showAllHomeTasksBtn">Show All</button>
+                        <button class="add-task-btn" id="openAddTaskModalBtn">
+                            <span>+</span> New
+                        </button>
+                    </div>
+                    <div class="tasks-table-container">
+                        <table class="tasks-table" id="todayTasksTable">
+                            <thead>
+                                <tr>
+                                    <th class="col-sno">S.No.</th>
+                                    <th class="col-date">Date</th>
+                                    <th class="col-task">Task</th>
+                                    <th class="col-department">Department</th>
+                                    <th class="col-priority">Priority</th>
+                                    <th class="col-status">Status</th>
+                                    <th class="col-remarks">Remarks</th>
+                                    <th class="col-remarks2">Remarks 2</th>
+                                </tr>
+                            </thead>
+                            <tbody id="todayTasksTableBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="all-tasks-section" class="content-section hidden">
+                    <h2 class="section-title">All Tasks</h2>
+                    <div class="filter-container"> <label for="statusFilterAll">Status:</label>
+                        <select class="filter-select" id="statusFilterAll">
+                            <option value="">All Status</option><option value="To do">To do</option><option value="On hold">On hold</option><option value="Completed">Completed</option><option value="Cancelled">Cancelled</option>
+                        </select>
+                        <label for="departmentFilterAll">Department:</label>
+                        <select class="filter-select" id="departmentFilterAll">
+                            <option value="">All Departments</option><option value="IT">IT</option><option value="HR">HR</option><option value="2D">2D</option><option value="3D">3D</option><option value="Editing">Editing</option><option value="Digital Marketing">Digital Marketing</option><option value="Sales">Sales</option><option value="Typing">Typing</option><option value="Technical Team">Technical Team</option>
+                        </select>
+                    </div>
+                    <div class="tasks-table-container"> <table class="tasks-table" id="allTasksTable">
+                            <thead>
+                                <tr>
+                                    <th class="col-sno">S.No.</th>
+                                    <th class="col-date">Date</th>
+                                    <th class="col-task">Task</th>
+                                    <th class="col-department">Department</th>
+                                    <th class="col-priority">Priority</th>
+                                    <th class="col-status">Status</th>
+                                    <th class="col-remarks">Remarks</th>
+                                    <th class="col-remarks2">Remarks 2</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allTasksTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="pending-section" class="content-section hidden">
+                    <h2 class="section-title">Pending Tasks</h2>
+                     <div class="filter-container">
+                        <label for="statusFilterPending">Status:</label>
+                        <select class="filter-select" id="statusFilterPending"><option value="">All Status</option><option value="To do">To do</option><option value="On hold">On hold</option></select>
+                        <label for="departmentFilterPending">Department:</label>
+                        <select class="filter-select" id="departmentFilterPending"><option value="">All Departments</option><option value="IT">IT</option><option value="HR">HR</option><option value="2D">2D</option><option value="3D">3D</option><option value="Editing">Editing</option><option value="Digital Marketing">Digital Marketing</option><option value="Sales">Sales</option><option value="Typing">Typing</option><option value="Technical Team">Technical Team</option></select>
+                    </div>
+                    <div class="tasks-grid" id="pendingTasksGridContainer"></div>
+                </div>
+
+                <div id="upcoming-section" class="content-section hidden">
+                    <h2 class="section-title">Upcoming Tasks</h2>
+                    <div class="filter-container">
+                        <label for="statusFilterUpcoming">Status:</label>
+                        <select class="filter-select" id="statusFilterUpcoming"><option value="">All Status</option><option value="To do">To do</option><option value="On hold">On hold</option></select>
+                        <label for="departmentFilterUpcoming">Department:</label>
+                        <select class="filter-select" id="departmentFilterUpcoming"><option value="">All Departments</option><option value="IT">IT</option><option value="HR">HR</option><option value="2D">2D</option><option value="3D">3D</option><option value="Editing">Editing</option><option value="Digital Marketing">Digital Marketing</option><option value="Sales">Sales</option><option value="Typing">Typing</option><option value="Technical Team">Technical Team</option></select>
+                    </div>
+                    <div class="tasks-grid" id="upcomingTasksGridContainer"></div>
+                </div>
+
+                <div id="history-section" class="content-section hidden">
+                    <h2 class="section-title">Completed & Cancelled Tasks</h2>
+                    <div class="filter-container">
+                        <label for="statusFilterHistory">Status:</label>
+                        <select class="filter-select" id="statusFilterHistory"><option value="">All Status</option><option value="Completed">Completed</option><option value="Cancelled">Cancelled</option></select>
+                        <label for="departmentFilterHistory">Department:</label>
+                        <select class="filter-select" id="departmentFilterHistory"><option value="">All Departments</option><option value="IT">IT</option><option value="HR">HR</option><option value="2D">2D</option><option value="3D">3D</option><option value="Editing">Editing</option><option value="Digital Marketing">Digital Marketing</option><option value="Sales">Sales</option><option value="Typing">Typing</option><option value="Technical Team">Technical Team</option></select>
+                    </div>
+                     <div class="tasks-table-container"> <table class="tasks-table" id="historyTasksTable">
+                            <thead>
+                                <tr>
+                                    <th class="col-sno">S.No.</th>
+                                    <th class="col-date">Date</th>
+                                    <th class="col-task">Task</th>
+                                    <th class="col-department">Department</th>
+                                    <th class="col-priority">Priority</th>
+                                    <th class="col-status">Status</th>
+                                    <th class="col-remarks">Remarks</th>
+                                    <th class="col-remarks2">Remarks 2</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTasksTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskEditModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Task</h3>
+                <button type="button" class="close-btn" id="closeEditModalBtn">&times;</button>
+            </div>
+            <div id="successMessage" class="success-message" style="display: none;"></div>
+            <form id="taskForm">
+                <input type="hidden" id="editingTaskIdInput">
+                <div class="form-row">
+                    <div class="form-col"><label for="taskDate">Date</label><input type="date" id="taskDate"    required></div>
+                    <div class="form-col"><label for="taskDepartment">Department</label><select id="taskDepartment" required><option value="">Select Department</option><option value="IT">IT</option><option value="HR">HR</option><option value="2D">2D</option><option value="3D">3D</option><option value="Editing">Editing</option><option value="Digital Marketing">Digital Marketing</option><option value="Sales">Sales</option><option value="Typing">Typing</option><option value="Technical Team">Technical Team</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col"><label for="taskTitle">Task</label><input type="text" id="taskTitle" placeholder="Enter task description" required></div>
+                    <div class="form-col"><label for="taskStatus">Status</label><select id="taskStatus" required><option value="">Select Status</option><option value="To do">To do</option><option value="On hold">On hold</option><option value="Completed">Completed</option><option value="Cancelled">Cancelled</option></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col"><label for="taskPriority">Priority</label><select id="taskPriority" required><option value="">Select Priority</option><option value="Low">Low</option><option value="High">High</option></select></div>
+                    <div class="form-col"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col"><label for="taskRemarks">Remarks</label><textarea id="taskRemarks" placeholder="Enter additional remarks"></textarea></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-col"><label for="taskRemarks2">Remarks 2</label><textarea id="taskRemarks2" placeholder="Enter additional remarks 2"></textarea></div>
+                </div>
+                <button type="submit" class="submit-btn" id="submitTaskBtn">Add Task</button>
+                <button type="button" class="delete-btn" id="deleteTaskBtn" style="display: none;">Delete Task</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="taskViewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="viewModalTitle">TASK</h3>
+                <button type="button" class="close-btn" id="closeViewModalBtn">&times;</button>
+            </div>
+            <div id="taskViewContent">
+                <div class="view-field-row"><span class="view-field-label">DATE</span><span class="view-field-value" id="viewTaskDate"></span></div>
+                <div class="view-field-row"><span class="view-field-label">TASK</span><span class="view-field-value" id="viewTaskTitle"></span></div>
+                <div class="view-field-row"><span class="view-field-label">DEPARTMENT</span><span class="view-field-value" id="viewTaskDepartment"></span></div>
+                <div class="view-field-row"><span class="view-field-label">PRIORITY</span><span class="view-field-value" id="viewTaskPriority"></span></div>
+                <div class="view-field-row"><span class="view-field-label">STATUS</span><span class="view-field-value" id="viewTaskStatus"></span></div>
+                <div class="view-field-row"><span class="view-field-label">REMARKS</span><span class="view-field-value remarks-view" id="viewTaskRemarks"></span></div>
+                <div class="view-field-row"><span class="view-field-label">REMARKS 2</span><span class="view-field-value remarks-view" id="viewTaskRemarks2"></span></div>
+            </div>
+            <div class="view-modal-actions">
+                <button type="button" class="edit-task-btn-from-view" id="editTaskFromViewBtn">Edit</button>
+                <button type="button" class="close-view-modal-secondary-btn" id="closeViewModalBtnSecondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Application State ---
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        let currentUser = null;
+        let currentViewTaskId = null;
+        let homeTasksShowAll = false;
+
+        // --- DOM Elements ---
+        const loginPage = document.getElementById('loginPage');
+        const dashboard = document.getElementById('dashboard');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const welcomeUser = document.getElementById('welcomeUser');
+
+        const taskEditModal = document.getElementById('taskEditModal');
+        const taskForm = document.getElementById('taskForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const successMessage = document.getElementById('successMessage');
+        const editingTaskIdInput = document.getElementById('editingTaskIdInput');
+        const openAddTaskModalBtn = document.getElementById('openAddTaskModalBtn');
+        const closeEditModalBtn = document.getElementById('closeEditModalBtn');
+        const submitTaskBtn = document.getElementById('submitTaskBtn');
+        const deleteTaskBtn = document.getElementById('deleteTaskBtn');
+        const taskRemarksInput = document.getElementById('taskRemarks');
+        const taskRemarks2Input = document.getElementById('taskRemarks2');
+
+        const taskViewModal = document.getElementById('taskViewModal');
+        const viewModalTitle = document.getElementById('viewModalTitle');
+        const closeViewModalBtn = document.getElementById('closeViewModalBtn');
+        const closeViewModalBtnSecondary = document.getElementById('closeViewModalBtnSecondary');
+        const editTaskFromViewBtn = document.getElementById('editTaskFromViewBtn');
+        const viewTaskDate = document.getElementById('viewTaskDate');
+        const viewTaskDepartment = document.getElementById('viewTaskDepartment');
+        const viewTaskTitle = document.getElementById('viewTaskTitle');
+        const viewTaskPriority = document.getElementById('viewTaskPriority');
+        const viewTaskStatus = document.getElementById('viewTaskStatus');
+        const viewTaskRemarks = document.getElementById('viewTaskRemarks');
+        const viewTaskRemarks2 = document.getElementById('viewTaskRemarks2');
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        const menuToggleBtn = document.getElementById('menuToggleBtn');
+        const contentAreaOverlay = document.querySelector('.content-area-overlay');
+        const dashboardHeader = document.getElementById('dashboardHeader');
+        const mainContainer = document.getElementById('mainContainer');
+        const sidebar = document.getElementById('sidebar');
+
+
+        // Table body elements
+        const todayTasksTableBody = document.getElementById('todayTasksTableBody');
+        const allTasksTableBody = document.getElementById('allTasksTableBody');
+        const historyTasksTableBody = document.getElementById('historyTasksTableBody');
+
+        // Filter elements for Home
+        const statusFilterHome = document.getElementById('statusFilterHome');
+        const departmentFilterHome = document.getElementById('departmentFilterHome');
+        const dateFilterHomeStart = document.getElementById('dateFilterHomeStart');
+        const dateFilterHomeEnd = document.getElementById('dateFilterHomeEnd');
+        const applyHomeDateFilterBtn = document.getElementById('applyHomeDateFilterBtn');
+        const showAllHomeTasksBtn = document.getElementById('showAllHomeTasksBtn');
+
+
+        // Grid containers
+        const pendingTasksGridContainer = document.getElementById('pendingTasksGridContainer');
+        const upcomingTasksGridContainer = document.getElementById('upcomingTasksGridContainer');
+
+        // --- Adjust padding for fixed header ---
+        function adjustLayoutForFixedHeader() {
+            if (dashboardHeader && mainContainer && sidebar) {
+                const headerHeight = dashboardHeader.offsetHeight;
+                mainContainer.style.paddingTop = headerHeight + 'px';
+                sidebar.style.paddingTop = headerHeight + 'px';
+            }
+        }
+
+        // --- Hamburger Menu Functionality ---
+        if (menuToggleBtn && dashboard) {
+            menuToggleBtn.addEventListener('click', () => {
+                dashboard.classList.toggle('sidebar-active');
+            });
+        }
+        if (contentAreaOverlay && dashboard) {
+            contentAreaOverlay.addEventListener('click', () => {
+                 dashboard.classList.remove('sidebar-active');
+            });
+        }
+
+
+        // --- UTILITY FUNCTIONS ---
+        /**
+         * Gets the local date as a "YYYY-MM-DD" string.
+         * @param {Date} dateObject - The Date object to format.
+         * @returns {string} The date string in YYYY-MM-DD format.
+         */
+        function getYYYYMMDD(dateObject) {
+            const year = dateObject.getFullYear();
+            const month = (dateObject.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
+            const day = dateObject.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function formatDateForDisplay(dateString) {
+            if (!dateString) return 'N/A';
+            // Assuming dateString is already in YYYY-MM-DD format from getYYYYMMDD or input type="date"
+            const parts = dateString.split('-');
+            if (parts.length !== 3) return 'N/A'; // Basic validation
+            const [year, month, day] = parts;
+            // Reconstruct for display, ensuring it's treated as local
+            // Using new Date(year, month - 1, day) is safer than new Date(dateString) which can have timezone issues
+            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+        }
+
+        function showSuccessMessage(message) {
+            if(!successMessage) return;
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            setTimeout(() => { successMessage.style.display = 'none'; }, 3000);
+        }
+
+        function autoResizeTextarea(textarea) {
+            if (!textarea) return;
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+        if (taskRemarksInput) taskRemarksInput.addEventListener('input', () => autoResizeTextarea(taskRemarksInput));
+        if (taskRemarks2Input) taskRemarks2Input.addEventListener('input', () => autoResizeTextarea(taskRemarks2Input));
+
+
+        // --- LOGIN FUNCTIONALITY ---
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const usernameEl = document.getElementById('username');
+                const passwordEl = document.getElementById('password');
+                if (!usernameEl || !passwordEl) return;
+
+                const username = usernameEl.value;
+                const password = passwordEl.value;
+
+                // Replace with your actual authentication logic
+                if (username === 'SUJITH' && password === 'DT@9999') {
+                    currentUser = username;
+                    localStorage.setItem('loggedInUser', currentUser);
+                    checkLoginStateAndSetupUI();
+                } else {
+                    if(loginError) {
+                        loginError.textContent = 'Invalid credentials. Please try again.';
+                        loginError.style.display = 'block';
+                    }
+                }
+            });
+        }
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                currentUser = null;
+                localStorage.removeItem('loggedInUser');
+                if(dashboard) dashboard.classList.remove('sidebar-active');
+                checkLoginStateAndSetupUI();
+                if(loginForm) loginForm.reset();
+            });
+        }
+
+        // --- NAVIGATION ---
+        document.querySelectorAll('.sidebar .nav-item:not(#logoutBtn)').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar .nav-item').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelectorAll('.content-section').forEach(section => section.classList.add('hidden'));
+                const sectionName = this.getAttribute('data-section');
+                const sectionElement = document.getElementById(sectionName + '-section');
+                if (sectionElement) sectionElement.classList.remove('hidden');
+
+                renderTasks();
+                if (window.innerWidth <= 1024 && dashboard) { // Corrected breakpoint for closing sidebar
+                    dashboard.classList.remove('sidebar-active');
+                }
+            });
+        });
+
+        // --- MODAL FUNCTIONALITY (EDIT/ADD) ---
+        function openEditModalForNewTask() {
+            if(!taskForm || !editingTaskIdInput || !modalTitle || !submitTaskBtn || !deleteTaskBtn || !taskEditModal) return;
+            taskForm.reset();
+            editingTaskIdInput.value = '';
+            currentViewTaskId = null;
+            modalTitle.textContent = 'Add New Task';
+            submitTaskBtn.textContent = 'Add Task';
+            deleteTaskBtn.style.display = 'none';
+            const taskDateInput = document.getElementById('taskDate');
+            if (taskDateInput) taskDateInput.value = getYYYYMMDD(new Date()); // Set to current local date
+            const taskPriorityInput = document.getElementById('taskPriority');
+            if (taskPriorityInput) taskPriorityInput.value = 'Low';
+
+            autoResizeTextarea(taskRemarksInput);
+            autoResizeTextarea(taskRemarks2Input);
+            taskEditModal.style.display = 'flex';
+        }
+
+        function openEditModalForEditTask(taskId) {
+            if(!taskForm || !editingTaskIdInput || !modalTitle || !submitTaskBtn || !deleteTaskBtn || !taskEditModal) return;
+            const taskToEdit = tasks.find(task => task.id === taskId);
+            if (!taskToEdit) {
+                console.error("Task not found for editing:", taskId);
+                return;
+            }
+
+            currentViewTaskId = taskId;
+
+            taskForm.reset();
+            editingTaskIdInput.value = taskToEdit.id;
+            modalTitle.textContent = 'Edit Task';
+            submitTaskBtn.textContent = 'Save Changes';
+            deleteTaskBtn.style.display = 'block';
+
+            const taskDateInput = document.getElementById('taskDate');
+            if(taskDateInput) taskDateInput.value = taskToEdit.date; // Assumes taskToEdit.date is YYYY-MM-DD
+            const taskDeptInput = document.getElementById('taskDepartment');
+            if(taskDeptInput) taskDeptInput.value = taskToEdit.department;
+            const taskTitleInput = document.getElementById('taskTitle');
+            if(taskTitleInput) taskTitleInput.value = taskToEdit.title;
+            const taskStatusInput = document.getElementById('taskStatus');
+            if(taskStatusInput) taskStatusInput.value = taskToEdit.status;
+            const taskPriorityInput = document.getElementById('taskPriority');
+            if(taskPriorityInput) taskPriorityInput.value = taskToEdit.priority || 'Low';
+            if(taskRemarksInput) taskRemarksInput.value = taskToEdit.remarks || '';
+            if(taskRemarks2Input) taskRemarks2Input.value = taskToEdit.remarks2 || '';
+
+            autoResizeTextarea(taskRemarksInput);
+            autoResizeTextarea(taskRemarks2Input);
+            taskEditModal.style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            if(!taskEditModal || !taskForm || !editingTaskIdInput || !successMessage) return;
+            taskEditModal.style.display = 'none';
+            taskForm.reset();
+            editingTaskIdInput.value = '';
+            successMessage.style.display = 'none';
+        }
+
+        if(openAddTaskModalBtn) openAddTaskModalBtn.addEventListener('click', openEditModalForNewTask);
+        if(closeEditModalBtn) closeEditModalBtn.addEventListener('click', closeEditModal);
+
+        // --- MODAL FUNCTIONALITY (VIEW) ---
+        function openViewModal(taskId) {
+            if(!viewModalTitle || !viewTaskDate || !viewTaskTitle || !viewTaskDepartment || !viewTaskPriority || !viewTaskStatus || !viewTaskRemarks || !viewTaskRemarks2 || !taskViewModal) return;
+
+            const taskToView = tasks.find(task => task.id === taskId);
+            if (!taskToView) {
+                 console.error("Task not found for viewing:", taskId);
+                return;
+            }
+
+            currentViewTaskId = taskId;
+
+            viewModalTitle.textContent = "TASK DETAILS";
+            viewTaskDate.textContent = formatDateForDisplay(taskToView.date);
+            viewTaskTitle.textContent = taskToView.title;
+            viewTaskDepartment.textContent = taskToView.department;
+            viewTaskPriority.textContent = taskToView.priority || 'Low';
+            viewTaskStatus.textContent = taskToView.status;
+            viewTaskRemarks.textContent = taskToView.remarks || 'N/A';
+            viewTaskRemarks2.textContent = taskToView.remarks2 || 'N/A';
+
+            viewTaskPriority.className = `view-field-value prio-${(taskToView.priority || 'Low').toLowerCase()}`;
+            viewTaskStatus.className = `view-field-value status-${taskToView.status.toLowerCase().replace(/\s+/g, '')}`;
+
+            taskViewModal.style.display = 'flex';
+        }
+
+        function hideViewModalAndClearId() {
+            if(!taskViewModal) return;
+            taskViewModal.style.display = 'none';
+            currentViewTaskId = null;
+        }
+
+        if(closeViewModalBtn) closeViewModalBtn.addEventListener('click', hideViewModalAndClearId);
+        if(closeViewModalBtnSecondary) closeViewModalBtnSecondary.addEventListener('click', hideViewModalAndClearId);
+
+        if(editTaskFromViewBtn) {
+            editTaskFromViewBtn.addEventListener('click', () => {
+                const idToEdit = currentViewTaskId;
+                if (idToEdit !== null) {
+                    if(taskViewModal) taskViewModal.style.display = 'none';
+                    openEditModalForEditTask(idToEdit);
+                } else {
+                    console.error("No task ID to edit from view. currentViewTaskId is null when Edit was clicked.");
+                }
+            });
+        }
+
+        window.addEventListener('click', function(e) {
+            if (e.target === taskEditModal) {
+                closeEditModal();
+            }
+            if (e.target === taskViewModal) {
+                hideViewModalAndClearId();
+            }
+        });
+
+        // --- TASK FORM SUBMISSION (ADD/EDIT) ---
+        if (taskForm) {
+            taskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if(!editingTaskIdInput || !successMessage) return;
+
+                const idToEdit = parseInt(editingTaskIdInput.value);
+                const taskData = {
+                    date: document.getElementById('taskDate').value, // Already YYYY-MM-DD from input type="date"
+                    department: document.getElementById('taskDepartment').value,
+                    title: document.getElementById('taskTitle').value,
+                    status: document.getElementById('taskStatus').value,
+                    priority: document.getElementById('taskPriority').value,
+                    remarks: document.getElementById('taskRemarks').value,
+                    remarks2: document.getElementById('taskRemarks2').value,
+                };
+
+                if (idToEdit) {
+                    const taskIndex = tasks.findIndex(task => task.id === idToEdit);
+                    if (taskIndex > -1) {
+                        tasks[taskIndex] = { ...tasks[taskIndex], ...taskData };
+                        showSuccessMessage('Task updated successfully!');
+                    } else {
+                        console.error("Task to update not found in array, ID:", idToEdit);
+                    }
+                } else {
+                    taskData.id = Date.now();
+                    taskData.createdAt = new Date().toISOString(); // Keep ISO for creation timestamp
+                    tasks.push(taskData);
+                    showSuccessMessage('Task added successfully!');
+                }
+
+                saveTasks();
+                renderTasks();
+                setTimeout(closeEditModal, 1000);
+            });
+
+            taskForm.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && document.activeElement.tagName !== 'TEXTAREA' && !e.shiftKey) {
+                     e.preventDefault();
+                     if (taskForm.checkValidity()) {
+                        if(submitTaskBtn) submitTaskBtn.click();
+                     } else {
+                        taskForm.reportValidity();
+                     }
+                }
+            });
+        }
+
+
+        // --- DELETE TASK ---
+        if (deleteTaskBtn) {
+            deleteTaskBtn.addEventListener('click', function() {
+                if(!editingTaskIdInput || !successMessage) return;
+                const idToDelete = parseInt(editingTaskIdInput.value);
+                if (!idToDelete) return;
+
+                // Using a simple confirm for now. Replace with a custom modal if needed.
+                if (confirm('Are you sure you want to delete this task?')) {
+                    tasks = tasks.filter(task => task.id !== idToDelete);
+                    saveTasks();
+                    showSuccessMessage('Task deleted successfully!');
+                    renderTasks();
+                    closeEditModal();
+                }
+            });
+        }
+
+        // --- TASK RENDERING LOGIC ---
+
+        function createTaskTableRow(task, index) {
+            const row = document.createElement('tr');
+            row.setAttribute('data-task-id', task.id);
+            row.innerHTML = `
+                <td class="col-sno">${index + 1}</td>
+                <td class="col-date">${formatDateForDisplay(task.date)}</td>
+                <td class="col-task">${task.title}</td>
+                <td class="col-department">${task.department}</td>
+                <td class="col-priority prio-${(task.priority || 'Low').toLowerCase()}">${task.priority || 'Low'}</td>
+                <td class="col-status status-${task.status.toLowerCase().replace(/\s+/g, '')}">${task.status}</td>
+                <td class="col-remarks">${task.remarks || ''}</td>
+                <td class="col-remarks2">${task.remarks2 || ''}</td>
+            `;
+            row.addEventListener('click', () => openViewModal(task.id));
+            return row;
+        }
+
+        function createTaskCard(task) {
+            const statusClass = `status-${task.status.toLowerCase().replace(/\s+/g, '')}`;
+            const priority = task.priority || 'Low';
+            const priorityClass = `prio-${priority.toLowerCase()}`;
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.setAttribute('data-task-id', task.id);
+            card.innerHTML = `
+                <div class="task-header">
+                    <span class="task-date">${formatDateForDisplay(task.date)}</span>
+                    <span class="task-status ${statusClass}">${task.status}</span>
+                </div>
+                <div class="task-department">${task.department} - <span class="task-priority ${priorityClass}">${priority}</span></div>
+                <div class="task-title">${task.title}</div>
+                <div class="task-remarks">${(task.remarks || 'No remarks').substring(0, 100)}${ (task.remarks && task.remarks.length > 100) ? '...' : ''}</div>
+            `;
+            card.addEventListener('click', () => openViewModal(task.id));
+            return card;
+        }
+
+
+        function renderTasks() {
+            const activeSectionEl = document.querySelector('.sidebar .nav-item.active:not(#logoutBtn)');
+            if (!activeSectionEl) {
+                const homeNavItem = document.querySelector('.sidebar .nav-item[data-section="home"]');
+                if (homeNavItem) {
+                    homeNavItem.click();
+                } else {
+                    console.error("RenderTasks: Critical - Home nav item not found.");
+                }
+                return;
+            }
+            const activeSection = activeSectionEl.getAttribute('data-section');
+
+            if (todayTasksTableBody) todayTasksTableBody.innerHTML = '';
+            if (allTasksTableBody) allTasksTableBody.innerHTML = '';
+            if (historyTasksTableBody) historyTasksTableBody.innerHTML = '';
+            [pendingTasksGridContainer, upcomingTasksGridContainer].forEach(c => {
+                if (c) c.innerHTML = '';
+            });
+
+            const noTasksMsgCard = '<div class="no-tasks-message">No tasks to display.</div>';
+            const noTasksMsgTable = `<tr><td colspan="8" class="no-tasks-message-table">No tasks to display.</td></tr>`;
+
+            let tasksToDisplay = [];
+
+            // Get current local date in YYYY-MM-DD format
+            const currentDateObj = new Date();
+            const todayLocalYYYYMMDD = getYYYYMMDD(currentDateObj);
+
+
+            if (activeSection === 'home') {
+                let filteredHomeTasks = [...tasks];
+                const statusValHome = statusFilterHome ? statusFilterHome.value : '';
+                if (statusValHome) {
+                    filteredHomeTasks = filteredHomeTasks.filter(task => task.status === statusValHome);
+                } else {
+                     // Default to 'To do' or 'On hold' if no status filter is selected for home
+                     filteredHomeTasks = filteredHomeTasks.filter(task => task.status === 'To do' || task.status === 'On hold');
+                }
+                const deptValHome = departmentFilterHome ? departmentFilterHome.value : '';
+                if (deptValHome) {
+                    filteredHomeTasks = filteredHomeTasks.filter(task => task.department === deptValHome);
+                }
+
+                const startDateHome = dateFilterHomeStart ? dateFilterHomeStart.value : ''; // YYYY-MM-DD
+                const endDateHome = dateFilterHomeEnd ? dateFilterHomeEnd.value : '';     // YYYY-MM-DD
+
+
+                if (homeTasksShowAll) {
+                    // Show all tasks (respecting date range if provided)
+                    if (startDateHome && endDateHome) {
+                        filteredHomeTasks = filteredHomeTasks.filter(task => task.date >= startDateHome && task.date <= endDateHome);
+                    } else if (startDateHome) {
+                         filteredHomeTasks = filteredHomeTasks.filter(task => task.date >= startDateHome);
+                    } else if (endDateHome) {
+                         filteredHomeTasks = filteredHomeTasks.filter(task => task.date <= endDateHome);
+                    }
+                    // If no date range, all (matching status/dept) are shown
+                } else {
+                     // Show tasks based on date range, or today's tasks if no range
+                     if (startDateHome && endDateHome) {
+                        filteredHomeTasks = filteredHomeTasks.filter(task => task.date >= startDateHome && task.date <= endDateHome);
+                    } else if (startDateHome && !endDateHome) {
+                        filteredHomeTasks = filteredHomeTasks.filter(task => task.date >= startDateHome);
+                    } else if (!startDateHome && endDateHome) {
+                        filteredHomeTasks = filteredHomeTasks.filter(task => task.date <= endDateHome);
+                    } else {
+                        // Default to today's tasks if no date range is active
+                        filteredHomeTasks = filteredHomeTasks.filter(task => task.date === todayLocalYYYYMMDD);
+                    }
+                }
+
+                tasksToDisplay = filteredHomeTasks;
+                if (todayTasksTableBody) {
+                    if (tasksToDisplay.length > 0) {
+                        tasksToDisplay.forEach((task, index) => todayTasksTableBody.appendChild(createTaskTableRow(task, index)));
+                    } else {
+                        todayTasksTableBody.innerHTML = noTasksMsgTable;
+                    }
+                }
+
+            } else if (activeSection === 'all-tasks') {
+                let filtered = [...tasks];
+                const statusFilterAllEl = document.getElementById('statusFilterAll');
+                const deptFilterAllEl = document.getElementById('departmentFilterAll');
+                const statusVal = statusFilterAllEl ? statusFilterAllEl.value : '';
+                const deptVal = deptFilterAllEl ? deptFilterAllEl.value : '';
+
+                if (statusVal) filtered = filtered.filter(task => task.status === statusVal);
+                if (deptVal) filtered = filtered.filter(task => task.department === deptVal);
+                tasksToDisplay = filtered;
+
+                if (allTasksTableBody) {
+                    if (tasksToDisplay.length > 0) {
+                        tasksToDisplay.forEach((task, index) => allTasksTableBody.appendChild(createTaskTableRow(task, index)));
+                    } else {
+                        allTasksTableBody.innerHTML = noTasksMsgTable;
+                    }
+                }
+            } else if (activeSection === 'pending') {
+                let filtered = tasks.filter(task => {
+                    // Task date is before today's local date, and status is 'To do' or 'On hold'
+                    return task.date < todayLocalYYYYMMDD && (task.status === 'To do' || task.status === 'On hold');
+                });
+                const statusFilterPendingEl = document.getElementById('statusFilterPending');
+                const deptFilterPendingEl = document.getElementById('departmentFilterPending');
+                const statusVal = statusFilterPendingEl ? statusFilterPendingEl.value : '';
+                const deptVal = deptFilterPendingEl ? deptFilterPendingEl.value : '';
+
+                if (statusVal) filtered = filtered.filter(task => task.status === statusVal);
+                if (deptVal) filtered = filtered.filter(task => task.department === deptVal);
+                tasksToDisplay = filtered;
+
+                if (pendingTasksGridContainer) {
+                     if (tasksToDisplay.length > 0) tasksToDisplay.forEach(task => pendingTasksGridContainer.appendChild(createTaskCard(task)));
+                    else pendingTasksGridContainer.innerHTML = noTasksMsgCard;
+                }
+            } else if (activeSection === 'upcoming') {
+                let filtered = tasks.filter(task => {
+                    // Task date is on or after today's local date, and status is 'To do' or 'On hold'
+                    return task.date >= todayLocalYYYYMMDD && (task.status === 'To do' || task.status === 'On hold');
+                });
+                const statusFilterUpcomingEl = document.getElementById('statusFilterUpcoming');
+                const deptFilterUpcomingEl = document.getElementById('departmentFilterUpcoming');
+                const statusVal = statusFilterUpcomingEl ? statusFilterUpcomingEl.value : '';
+                const deptVal = deptFilterUpcomingEl ? deptFilterUpcomingEl.value : '';
+
+                if (statusVal) filtered = filtered.filter(task => task.status === statusVal);
+                if (deptVal) filtered = filtered.filter(task => task.department === deptVal);
+                tasksToDisplay = filtered;
+
+                if (upcomingTasksGridContainer) {
+                    if (tasksToDisplay.length > 0) tasksToDisplay.forEach(task => upcomingTasksGridContainer.appendChild(createTaskCard(task)));
+                    else upcomingTasksGridContainer.innerHTML = noTasksMsgCard;
+                }
+            } else if (activeSection === 'history') {
+                let filtered = tasks.filter(task => task.status === 'Completed' || task.status === 'Cancelled');
+                const statusFilterHistoryEl = document.getElementById('statusFilterHistory');
+                const deptFilterHistoryEl = document.getElementById('departmentFilterHistory');
+                const statusVal = statusFilterHistoryEl ? statusFilterHistoryEl.value : '';
+                const deptVal = deptFilterHistoryEl ? deptFilterHistoryEl.value : '';
+
+                if (statusVal) filtered = filtered.filter(task => task.status === statusVal);
+                if (deptVal) filtered = filtered.filter(task => task.department === deptVal);
+                tasksToDisplay = filtered;
+
+                if (historyTasksTableBody) {
+                    if (tasksToDisplay.length > 0) {
+                         tasksToDisplay.forEach((task, index) => historyTasksTableBody.appendChild(createTaskTableRow(task, index)));
+                    } else {
+                         historyTasksTableBody.innerHTML = noTasksMsgTable;
+                    }
+                }
+            }
+        }
+
+        if(statusFilterHome) statusFilterHome.addEventListener('change', renderTasks);
+        if(departmentFilterHome) departmentFilterHome.addEventListener('change', renderTasks);
+        if(applyHomeDateFilterBtn) applyHomeDateFilterBtn.addEventListener('click', renderTasks);
+        if(showAllHomeTasksBtn) {
+            showAllHomeTasksBtn.addEventListener('click', () => {
+                homeTasksShowAll = !homeTasksShowAll;
+                showAllHomeTasksBtn.textContent = homeTasksShowAll ? "Show Today's" : "Show All / Range";
+                if (!homeTasksShowAll) {
+                    // When switching back to "Show Today's", clear date filters
+                    if(dateFilterHomeStart) dateFilterHomeStart.value = '';
+                    if(dateFilterHomeEnd) dateFilterHomeEnd.value = '';
+                }
+                renderTasks();
+            });
+        }
+
+        document.querySelectorAll('#all-tasks-section .filter-select, #pending-section .filter-select, #upcoming-section .filter-select, #history-section .filter-select').forEach(filterElement => {
+            filterElement.addEventListener('change', renderTasks);
+        });
+
+        // --- INITIALIZATION ---
+        function initializeAppTasks() {
+            if (tasks.length === 0) {
+                const todayDateObj = new Date();
+                const todayStr = getYYYYMMDD(todayDateObj); // YYYY-MM-DD
+
+                const yesterdayDateObj = new Date(todayDateObj);
+                yesterdayDateObj.setDate(todayDateObj.getDate() - 1);
+                const yesterdayStr = getYYYYMMDD(yesterdayDateObj); // YYYY-MM-DD
+
+                const tomorrowDateObj = new Date(todayDateObj);
+                tomorrowDateObj.setDate(todayDateObj.getDate() + 1);
+                const tomorrowStr = getYYYYMMDD(tomorrowDateObj); // YYYY-MM-DD
+
+                tasks = [
+                    { id: 1, date: todayStr, department: 'IT', title: 'Deploy server updates for critical infrastructure components and verify post-deployment stability across all affected systems.', status: 'To do', remarks: 'Critical security patch. Coordinate with infra team. Ensure rollback plan is in place and tested before proceeding with the deployment. Downtime window: 2 AM - 4 AM.', remarks2: 'Backup completed before deployment. Secondary verification by QA team scheduled for 5 AM.', createdAt: new Date().toISOString(), priority: 'High' },
+                    { id: 2, date: todayStr, department: 'HR', title: 'Schedule candidate interviews for senior developer role', status: 'On hold', remarks: 'Waiting for manager availability. Three candidates shortlisted. Need to coordinate with panel members from engineering and product teams.', remarks2: 'Follow up next Monday. Send calendar invites once slots are confirmed. Prepare interview feedback forms.', createdAt: new Date().toISOString(), priority: 'Low' },
+                    { id: 3, date: yesterdayStr, department: '2D', title: 'Finalize character sketches for new game protagonist and antagonist figures.', status: 'Completed', remarks: 'Client approved all sketches after minor revisions. Feedback incorporated successfully. High-resolution files prepared.', remarks2: 'Files sent to 3D team for modeling. Style guide updated with final character designs.', createdAt: new Date().toISOString(), priority: 'Low' },
+                    { id: 4, date: tomorrowStr, department: '3D', title: 'Model new environment assets (props and structures) for Level 3 based on approved concept art.', status: 'To do', remarks: 'Refer to concept art folder "ProjectX/Level3/Assets". Pay attention to texture resolution and polycount limits specified in the technical guidelines.', remarks2: 'High poly models first for baking normal maps. Low poly versions to be optimized for performance. Check for scale consistency.', createdAt: new Date().toISOString(), priority: 'High' },
+                    { id: 5, date: yesterdayStr, department: 'Sales', title: 'Follow up webinar leads from last week\'s product demo session.', status: 'Cancelled', remarks: 'Client no longer interested due to internal restructuring and project reprioritization. Marked as lost opportunity.', remarks2: 'Budget constraints cited by client as primary reason. Removed from active pipeline. Logged reason in CRM.', createdAt: new Date().toISOString(), priority: 'Low' },
+                    { id: 6, date: todayStr, department: 'Editing', title: 'Edit promotional video for upcoming summer campaign. Incorporate new branding guidelines.', status: 'To do', remarks: 'Raw footage received. Deadline EOD Friday. Focus on dynamic cuts and engaging music. Length: 60-90 seconds.', remarks2: 'Color correction pass needed. Ensure audio levels are consistent. Subtitles required for social media versions.', createdAt: new Date().toISOString(), priority: 'High' }
+                ];
+                saveTasks();
+            }
+        }
+
+        function checkLoginStateAndSetupUI() {
+            adjustLayoutForFixedHeader();
+            const loggedInUsername = localStorage.getItem('loggedInUser');
+            if (loggedInUsername) {
+                currentUser = loggedInUsername;
+                if(welcomeUser) welcomeUser.textContent = currentUser;
+                if(loginPage) loginPage.style.display = 'none';
+                if(dashboard) dashboard.style.display = 'flex';
+
+                requestAnimationFrame(adjustLayoutForFixedHeader);
+
+
+                let sectionActivated = false;
+                const currentActiveNavItem = document.querySelector('.sidebar .nav-item.active:not(#logoutBtn)');
+                if (currentActiveNavItem) {
+                    const sectionName = currentActiveNavItem.getAttribute('data-section');
+                    document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+                    const sectionElement = document.getElementById(sectionName + '-section');
+                    if (sectionElement) sectionElement.classList.remove('hidden');
+                    sectionActivated = true;
+                } else {
+                    const homeNavItem = document.querySelector('.sidebar .nav-item[data-section="home"]');
+                    if (homeNavItem) {
+                        document.querySelectorAll('.sidebar .nav-item').forEach(nav => nav.classList.remove('active'));
+                        homeNavItem.classList.add('active');
+                        const homeSection = document.getElementById('home-section');
+                        if(homeSection) {
+                           document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+                           homeSection.classList.remove('hidden');
+                        }
+                        sectionActivated = true;
+                    }
+                }
+                if (sectionActivated) {
+                    renderTasks();
+                } else {
+                    // Fallback to click home if no section was activated (should be rare)
+                    const homeNavItem = document.querySelector('.sidebar .nav-item[data-section="home"]');
+                    if (homeNavItem) homeNavItem.click();
+                }
+
+
+            } else {
+                if(loginPage) loginPage.style.display = 'flex';
+                if(dashboard) dashboard.style.display = 'none';
+            }
+        }
+
+        // Script execution start
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAppTasks();
+            checkLoginStateAndSetupUI();
+            window.addEventListener('resize', adjustLayoutForFixedHeader);
+        });
+
+    </script>
+</body>
+</html>
